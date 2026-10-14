@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f8f94">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gramy">
+<title>Gramy</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f3f6fa; --card:#ffffff; --ink:#14202b; --mut:#5d6b7a; --line:#e1e7ee;
+  --acc:#0f8f94; --acc2:#0b6f73; --accbg:#e3f5f5; --good:#1c9a52; --bad:#d4483b; --warn:#b7791f;
+  --field:#f3f6fa; --shadow:0 1px 2px rgba(20,32,43,.06),0 4px 14px rgba(20,32,43,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e1419; --card:#18212a; --ink:#eaf1f7; --mut:#93a3b3; --line:#27333f; --acc:#3cc3c8; --acc2:#7fdde0; --accbg:#143338; --good:#4ccb82; --bad:#ff7d70; --warn:#e8b25a; --field:#0e1419; --shadow:none}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);overscroll-behavior:none;font-size:16px;line-height:1.35}
+#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative}
+header{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 8px}
+header h1{margin:0;font-size:24px;letter-spacing:-.3px}
+.dnav{display:flex;align-items:center;gap:4px}
+.dnav button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;line-height:1}
+.dnav button[disabled]{opacity:.35}
+.dnav span{min-width:92px;text-align:center;font-weight:600;font-size:15px}
+main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 14px 22px}
+.view{display:none}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px;font-size:17px}
+.mut{color:var(--mut);font-size:14px}
+p{margin:0 0 8px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}.row>button{flex:none}
+.between{justify-content:space-between}
+.big{background:linear-gradient(160deg,var(--acc),var(--acc2));color:#fff;text-align:center;border:0}
+.big small{display:block;opacity:.9;font-size:14px}
+#tk{font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:4px 0;font-variant-numeric:tabular-nums}
+.big .sub{font-size:14px;opacity:.95}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.kpi{background:rgba(255,255,255,.16);border-radius:12px;padding:8px 4px}
+.kpi b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;opacity:.9}
+input,select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+.btn:active{filter:brightness(.92)}
+.btn.sec{background:var(--accbg);color:var(--acc2)}
+.btn.warn{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.btn.full{width:100%}
+.chips{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.chip{flex:1;min-width:60px;background:var(--accbg);color:var(--acc2);border:0;border-radius:12px;padding:11px 6px;font-weight:700}
+.chip:active{filter:brightness(.92)}
+.chip.q{flex:none;font-weight:600;font-size:14px;padding:9px 12px}
+.list{list-style:none;margin:10px 0 0;padding:0}
+.list li{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.x{background:none;border:0;color:var(--bad);font-size:18px;padding:2px 8px}
+.note{background:var(--accbg);color:var(--acc2);border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.note.warn{background:rgba(183,121,31,.14);color:var(--warn)}
+.bar{height:12px;background:var(--line);border-radius:8px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:8px}
+.bar.w i{background:#3b8fe0}
+.over{color:var(--warn);font-weight:700}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--field);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+td,th{padding:7px 4px;border-top:1px solid var(--line);text-align:right}
+th{color:var(--mut);font-weight:600;font-size:12.5px;border-top:0}
+td:first-child,th:first-child{text-align:left}
+.pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+svg.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line)}.chart .lbl{fill:var(--mut);font-size:10px}
+.chart .avg{stroke:var(--acc);fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.chart .dot{fill:var(--ink);opacity:.8}.chart .goal{stroke:var(--good);stroke-dasharray:5 4;stroke-width:2}.chart .glbl{fill:var(--good);font-size:10px}
+nav{flex:none;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 8px calc(env(safe-area-inset-bottom,0px) + 6px);gap:6px}
+nav button{flex:1;background:none;border:0;color:var(--mut);font-size:12px;font-weight:600;padding:6px 0;border-radius:12px}
+nav button svg{display:block;width:24px;height:24px;margin:0 auto 2px}
+nav button.on{color:var(--acc);background:var(--accbg)}
+#toast{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);background:var(--ink);color:var(--bg);border-radius:14px;padding:11px 14px;font-size:14.5px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.22s;z-index:10}
+#toast.on{opacity:1;transform:none}
+#setup{position:absolute;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 28px;display:none}
+#setup.on{display:block}
+#setup h1{margin:0 0 6px;font-size:30px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 id="title">Dnes</h1>
+    <div class="dnav" id="dnav">
+      <button data-act="prev" aria-label="Predchádzajúci deň">‹</button>
+      <span id="dlabel"></span>
+      <button data-act="next" aria-label="Nasledujúci deň">›</button>
+    </div>
+  </header>
+  <main id="main">
+    <div class="view" id="v-today"></div>
+    <div class="view" id="v-stats"></div>
+    <div class="view" id="v-set"></div>
+  </main>
+  <nav id="nav">
+    <button data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Dnes</button>
+    <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Prehľad</button>
+    <button data-tab="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>Nastavenia</button>
+  </nav>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="setup"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const fmt = (n, d = 0) => Number(n).toLocaleString('sk-SK', { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const KEY = 'gramy.v1';
+
+/* ---------- stav ---------- */
+const defSet = () => ({ weigh:7, pace:0.7, stepK:0, calib:0, water:2000 });
+const def = () => ({ v:2, profile:null, start:null, weights:[], days:{}, set:defSet(), lastBackup:0 });
+let S = load();
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) { const o = Object.assign(def(), JSON.parse(r)); o.set = Object.assign(defSet(), o.set); return o; } } catch (e) {}
+  return def();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ---------- dátumy ---------- */
+function dkey(d = new Date()) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function addDays(k, n) { const [y, m, d] = k.split('-').map(Number); return dkey(new Date(y, m - 1, d + n)); }
+function between(a, b) { const f = k => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((f(b) - f(a)) / 864e5); }
+function dayFrac() { const n = new Date(); return (n.getHours() * 3600 + n.getMinutes() * 60 + n.getSeconds()) / 86400; }
+function nice(k) {
+  if (k === dkey()) return 'Dnes';
+  if (k === addDays(dkey(), -1)) return 'Včera';
+  const [, m, d] = k.split('-').map(Number); return d + '. ' + m + '.';
+}
+function longDate(k) { const [y, m, d] = k.split('-').map(Number); return d + '. ' + m + '. ' + y; }
+const getDay = k => S.days[k] || (S.days[k] = { eat:[], steps:0, burn:0, water:0 });
+
+/* ---------- výpočty ---------- */
+const curW = () => S.weights.length ? S.weights[S.weights.length - 1].kg : S.profile.w0;
+function weightOn(k) { let w = S.profile.w0; for (const x of S.weights) { if (x.d <= k) w = x.kg; else break; } return w; }
+function bmrFor(w) { const p = S.profile; return 10 * w + 6.25 * p.h - 5 * p.age + (p.sex === 'm' ? 5 : -161); }
+const stepKcal = k => S.set.stepK > 0 ? S.set.stepK : 0.0005 * weightOn(k);
+/* Výdaj = BMR x 1,2 (bežný deň) + aktívne kcal (zadané, inak kroky x kcal na krok) + osobná korekcia z kalibrácie.
+   raw = bez korekcie (na samotnú kalibráciu). */
+function calc(k, frac, raw) {
+  const d = S.days[k] || { eat:[], steps:0, burn:0 };
+  const base = bmrFor(weightOn(k)) * 1.2, act = d.burn > 0 ? d.burn : d.steps * stepKcal(k);
+  const cal = raw ? 0 : S.set.calib;
+  const exp = (base + cal) * frac + act, eaten = d.eat.reduce((a, e) => a + e.k, 0);
+  return { base, act, exp, eaten, def:exp - eaten, g:(exp - eaten) / 7.7 };
+}
+const isLogged = k => !!(S.days[k] && S.days[k].eat.length);
+function target(k) {
+  const x = calc(k, 1), t = x.exp - S.set.pace * 7700 / 7, floor = S.profile.sex === 'm' ? 1500 : 1200;
+  return { t:Math.round(Math.max(floor, t)), floored:t < floor };
+}
+function movAvg() { return S.weights.map(w => { const n = S.weights.filter(x => x.d <= w.d && between(x.d, w.d) <= 6); return n.reduce((a, x) => a + x.kg, 0) / n.length; }); }
+function eta() {
+  const ws = S.weights; if (ws.length < 2) return null;
+  const last = ws[ws.length - 1]; let first = ws[0];
+  for (const w of ws) { if (between(w.d, last.d) <= 28) { first = w; break; } }
+  const span = between(first.d, last.d); if (span < 7) return null;
+  const rate = (first.kg - last.kg) / span; if (rate <= 0.0005) return null;
+  const remain = last.kg - S.profile.goal; if (remain <= 0) return { days:0, rate:rate * 7 };
+  return { days:Math.ceil(remain / rate), rate:rate * 7 };
+}
+function streak() { let k = dkey(), n = 0; if (!isLogged(k)) k = addDays(k, -1); while (k >= S.start && isLogged(k)) { n++; k = addDays(k, -1); } return n; }
+/* Kalibrácia: porovná odhadovaný úbytok s trendom váhy za posledných ~42 dní.
+   Trend = lineárna regresia váženíí (nemá oneskorenie ako kĺzavý priemer). */
+function calibration() {
+  const ws = S.weights;
+  if (ws.length < 4) return { need:'Na kalibráciu potrebuješ aspoň 4 váženia (ideálne aspoň raz týždenne).' };
+  const last = ws[ws.length - 1], win = ws.filter(w => between(w.d, last.d) <= 42);
+  if (win.length < 4) return { need:'V posledných 42 dňoch máš len ' + win.length + ' váženia, treba aspoň 4.' };
+  const first = win[0], span = between(first.d, last.d);
+  if (span < 21) return { need:'Váženia musia pokrývať aspoň 21 dní (zatiaľ ' + span + ').' };
+  const xs = win.map(w => between(first.d, w.d)), ys = win.map(w => w.kg), n = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxx = 0, sxy = 0; for (let i = 0; i < n; i++) { sxx += (xs[i] - mx) * (xs[i] - mx); sxy += (xs[i] - mx) * (ys[i] - my); }
+  if (!sxx) return { need:'Váženia sú príliš blízko pri sebe.' };
+  const lossPerDay = -sxy / sxx;
+  let sum = 0, L = 0;
+  for (let k = first.d; k < last.d; k = addDays(k, 1)) { if (isLogged(k) && calc(k, 1, true).eaten >= 800) { sum += calc(k, 1, true).def; L++; } }
+  if (L < span * 0.7) return { need:'Zapísané jedlo máš len ' + L + ' z ' + span + ' dní. Na kalibráciu treba aspoň 70 % dní.' };
+  const meanDef = sum / L, diff = lossPerDay * 7700 - meanDef;
+  return { diff:Math.max(-700, Math.min(700, diff)), L, span, est:meanDef * span / 7700, act:lossPerDay * span };
+}
+
+/* ---------- toast ---------- */
+let tt;
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); }
+
+/* ---------- akcie ---------- */
+let view = dkey(), tab = 'today';
+function addFood(v, label) {
+  v = Math.round(v); if (!(v > 0) || v > 5000) return toast('Zadaj hodnotu 1 až 5 000 kcal.');
+  const e = { k:v, t:Date.now() }; label = String(label || '').trim().slice(0, 30); if (label) e.n = label;
+  getDay(view).eat.push(e); save(); render();
+}
+function setSteps(n) { n = Math.round(n); if (!(n >= 0) || n > 100000) return toast('Zadaj kroky 0 až 100 000.'); getDay(view).steps = n; save(); toast('Kroky uložené'); render(); }
+function setBurn(n) { n = Math.round(n); if (!(n >= 0) || n > 6000) return toast('Zadaj hodnotu 0 až 6 000 kcal.'); getDay(view).burn = n; save(); toast(n ? 'Spálené kcal uložené' : 'Použije sa odhad z krokov'); render(); }
+function addWater(ml) { const d = getDay(view); d.water = Math.max(0, (d.water || 0) + ml); save(); render(); }
+function addWeight(kg) {
+  kg = Math.round(kg * 10) / 10; if (!(kg >= 30 && kg <= 400)) return toast('Zadaj váhu 30 až 400 kg.');
+  const i = S.weights.findIndex(w => w.d === view);
+  if (i >= 0) S.weights[i].kg = kg; else S.weights.push({ d:view, kg });
+  S.weights.sort((a, b) => a.d < b.d ? -1 : 1); save(); toast('Váženie zapísané'); render();
+}
+function recents() {
+  const all = []; for (const k in S.days) for (const e of S.days[k].eat) all.push(e);
+  all.sort((a, b) => b.t - a.t);
+  const seen = new Set(), out = [];
+  for (const e of all) { const key = (e.n || '') + '|' + e.k; if (seen.has(key)) continue; seen.add(key); out.push(e); if (out.length >= 6) break; }
+  return out;
+}
+
+/* ---------- súhrny ---------- */
+function weekStats() {
+  const t = dkey(), days = [];
+  for (let i = 1; i <= 7; i++) { const k = addDays(t, -i); if (k >= S.start) days.push(k); }
+  if (!days.length) return null;
+  const lg = days.filter(isLogged), n = lg.length, sum = f => lg.reduce((a, k) => a + f(k), 0);
+  return { days:days.length, logged:n, eat:n ? sum(k => calc(k, 1).eaten) / n : 0, steps:n ? sum(k => S.days[k].steps || 0) / n : 0, g:sum(k => calc(k, 1).g) };
+}
+function wavg(from, to) { const a = S.weights.filter(w => w.d >= from && w.d <= to); return a.length ? a.reduce((s, w) => s + w.kg, 0) / a.length : null; }
+function milestones() {
+  const p = S.profile, out = [];
+  for (let m = 5; m <= p.w0 - p.goal + 0.001; m += 5) { const w = S.weights.find(x => x.kg <= p.w0 - m + 1e-9); if (w) out.push({ m, d:w.d }); }
+  const g = S.weights.find(x => x.kg <= p.goal + 1e-9); if (g) out.push({ m:'cieľ', d:g.d });
+  return out;
+}
+
+/* ---------- graf ---------- */
+function chart() {
+  const ws = S.weights, W = 320, H = 180, L = 36, R = 10, T = 12, B = 22;
+  if (ws.length < 2) return '<p class="mut">Graf sa zobrazí po druhom vážení.</p>';
+  const avg = movAvg(), all = ws.map(w => w.kg).concat([S.profile.goal]);
+  const mn = Math.floor(Math.min(...all) - 1), mx = Math.ceil(Math.max(...all) + 1);
+  const t0 = new Date(ws[0].d).getTime(), t1 = new Date(ws[ws.length - 1].d).getTime() || t0 + 1;
+  const X = d => L + (new Date(d).getTime() - t0) / Math.max(1, t1 - t0) * (W - L - R);
+  const Y = v => T + (mx - v) / (mx - mn) * (H - T - B);
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Graf váhy">`;
+  for (let i = 0; i <= 3; i++) { const v = mn + (mx - mn) * i / 3; s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text class="lbl" x="${L - 5}" y="${Y(v) + 3.5}" text-anchor="end">${fmt(v, 0)}</text>`; }
+  s += `<line class="goal" x1="${L}" x2="${W - R}" y1="${Y(S.profile.goal)}" y2="${Y(S.profile.goal)}"/><text class="glbl" x="${W - R}" y="${Y(S.profile.goal) - 4}" text-anchor="end">cieľ</text>`;
+  s += `<polyline class="avg" points="${ws.map((w, i) => X(w.d) + ',' + Y(avg[i])).join(' ')}"/>`;
+  ws.forEach(w => { s += `<circle class="dot" cx="${X(w.d)}" cy="${Y(w.kg)}" r="3"/>`; });
+  const f = ws[0].d.split('-'), l = ws[ws.length - 1].d.split('-');
+  s += `<text class="lbl" x="${L}" y="${H - 5}">${+f[2]}. ${+f[1]}.</text><text class="lbl" x="${W - R}" y="${H - 5}" text-anchor="end">${+l[2]}. ${+l[1]}.</text>`;
+  return s + '</svg>';
+}
+
+/* ---------- render ---------- */
+function render() {
+  $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + tab));
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  $('#title').textContent = ({ today:nice(view), stats:'Prehľad', set:'Nastavenia' })[tab];
+  $('#dnav').style.display = tab === 'today' ? 'flex' : 'none';
+  $('#dlabel').textContent = nice(view);
+  const p = $('#dnav [data-act="prev"]'), n = $('#dnav [data-act="next"]');
+  if (p) p.disabled = view <= S.start; if (n) n.disabled = view >= dkey();
+  ({ today:rToday, stats:rStats, set:rSet })[tab]();
+}
+const isToday = () => view === dkey();
+function rToday() {
+  const d = getDay(view), x = calc(view, isToday() ? dayFrac() : 1), last = S.weights.filter(w => w.d === view)[0];
+  const due = isToday() && (!S.weights.length || between(S.weights[S.weights.length - 1].d, dkey()) >= S.set.weigh);
+  const hr = new Date().getHours();
+  const lowWarn = isToday() && x.eaten > 0 && x.eaten < 1200 && dayFrac() > 0.8;
+  const noEat = isToday() && !d.eat.length && hr >= 12;
+  const fewEat = isToday() && d.eat.length > 0 && d.eat.length <= 1 && hr >= 19;
+  const oldBackup = Date.now() - (S.lastBackup || 0) > 14 * 864e5 && between(S.start, dkey()) >= 7;
+  const tg = target(view), left = tg.t - x.eaten, rec = recents(), water = d.water || 0;
+  $('#v-today').innerHTML = `
+  <section class="card big">
+    <small>${isToday() ? 'Dnes si schudol' : 'Ten deň si schudol'}</small>
+    <div id="tk">0 g</div>
+    <div class="sub" id="tkSub"></div>
+    <div class="kpis">
+      <div class="kpi"><b id="kEat">0</b><span>zjedené kcal</span></div>
+      <div class="kpi"><b id="kExp">0</b><span>výdaj kcal</span></div>
+      <div class="kpi"><b id="kDef">0</b><span>deficit kcal</span></div>
+    </div>
+  </section>
+  ${due ? `<div class="note">Je čas na váženie. Najlepšie ráno po toalete a pred jedlom.</div>` : ''}
+  ${noEat ? `<div class="note">Dnes ešte nemáš zapísané žiadne jedlo.</div>` : ''}
+  ${fewEat ? `<div class="note">Je večer a máš zapísané len 1 jedlo. Nezabudol si zapísať ostatné?</div>` : ''}
+  ${lowWarn ? `<div class="note warn">Dnes máš zapísaných menej než 1 200 kcal. Skontroluj, či si zapísal všetko, a nejedz pod svoje potreby.</div>` : ''}
+  ${oldBackup ? `<div class="note warn">Posledná záloha je stará viac než 14 dní. Stiahni ju v Nastaveniach.</div>` : ''}
+  <section class="card"><h2>Jedlo</h2>
+    <div class="row between"><span class="mut">Cieľ na deň ≈ <b>${fmt(tg.t)}</b> kcal${tg.floored ? ' (spodná hranica)' : ''}</span><span class="${left < 0 ? 'over' : ''}"><b>${left >= 0 ? 'zostáva ' + fmt(left) : 'nad cieľom ' + fmt(-left)}</b> kcal</span></div>
+    <div class="bar"><i style="width:${Math.min(100, x.eaten / tg.t * 100)}%"></i></div>
+    ${rec.length ? `<p class="mut" style="margin-top:10px">Naposledy zapísané</p><div class="chips">${rec.map(e => `<button class="chip q" data-qk="${e.k}" data-ql="${esc(e.n || '')}">${e.n ? esc(e.n) + ' · ' : ''}${fmt(e.k)}</button>`).join('')}</div>` : ''}
+    <div class="chips" style="margin-top:8px">${[100, 250, 500, 800].map(v => `<button class="chip" data-eat="${v}">+${v}</button>`).join('')}</div>
+    <input id="eatName" type="text" maxlength="30" placeholder="názov (voliteľné), napr. obed" style="margin-bottom:8px">
+    <div class="row"><input id="eatIn" type="number" inputmode="numeric" placeholder="kcal"><button class="btn" data-act="eatAdd">Pridať</button></div>
+    <ul class="list">${d.eat.map((e, i) => `<li><span>${new Date(e.t).toLocaleTimeString('sk-SK', { hour:'2-digit', minute:'2-digit' })} · ${e.n ? esc(e.n) + ' · ' : ''}${fmt(e.k)} kcal</span><button class="x" data-del="${i}" aria-label="Zmazať">✕</button></li>`).join('') || '<li class="mut">Zatiaľ nič nezapísané.</li>'}</ul>
+  </section>
+  <section class="card"><h2>Voda</h2>
+    <div class="row between"><span><b>${fmt(water)}</b> / ${fmt(S.set.water)} ml</span><span class="mut">${fmt(Math.min(100, water / S.set.water * 100))} %</span></div>
+    <div class="bar w"><i style="width:${Math.min(100, water / S.set.water * 100)}%"></i></div>
+    <div class="chips" style="margin-bottom:0"><button class="chip" data-water="250">+250 ml</button><button class="chip" data-water="500">+500 ml</button><button class="chip" data-water="-250">−250</button></div>
+  </section>
+  <section class="card"><h2>Kroky</h2>
+    <div class="chips"><button class="chip" data-stp="1000">+1 000</button><button class="chip" data-stp="2500">+2 500</button><button class="chip" data-stp="5000">+5 000</button></div>
+    <div class="row"><input id="stIn" type="number" inputmode="numeric" placeholder="kroky spolu" value="${d.steps || ''}"><button class="btn" data-act="stSave">Uložiť</button></div>
+  </section>
+  <section class="card"><h2>Spálené kcal (voliteľné)</h2>
+    <p class="mut">Aktívne kcal z cvičenia. Prázdne = odhad z krokov.</p>
+    <div class="row"><input id="bnIn" type="number" inputmode="numeric" placeholder="aktívne kcal" value="${d.burn || ''}"><button class="btn" data-act="bnSave">Uložiť</button></div>
+  </section>
+  <section class="card"><h2>Váženie</h2>
+    <div class="row"><input id="wIn" type="number" inputmode="decimal" step="0.1" placeholder="váha v kg" value="${last ? last.kg : ''}"><button class="btn" data-act="wSave">Zapísať</button></div>
+    ${last ? `<p class="mut" style="margin-top:8px">Zapísané: <b>${fmt(last.kg, 1)} kg</b> <button class="x" data-delw="${view}" aria-label="Zmazať">✕</button></p>` : ''}
+  </section>`;
+  tick();
+}
+function tick() {
+  if (tab !== 'today' || !$('#tk')) return;
+  const x = calc(view, isToday() ? dayFrac() : 1), full = calc(view, 1), neg = x.g < 0;
+  $('#tk').textContent = (neg ? '+' : '') + fmt(Math.abs(x.g), isToday() ? 2 : 0) + ' g';
+  $('#kEat').textContent = fmt(x.eaten); $('#kExp').textContent = fmt(x.exp); $('#kDef').textContent = fmt(x.def);
+  $('#tkSub').textContent = isToday()
+    ? (x.eaten === 0 ? 'Zatiaľ bez jedla. Zapíš raňajky a číslo bude presnejšie.' : (neg ? 'Zatiaľ si v pluse. Čas a pohyb to vyrovnajú.' : 'Odhad do polnoci: ' + (full.g < 0 ? '+' : '') + fmt(Math.abs(full.g), 0) + ' g'))
+    : (isLogged(view) ? '' : 'Tento deň nemá zapísané jedlo.');
+}
+function rStats() {
+  const p = S.profile, cur = curW(), total = p.w0 - p.goal, lost = p.w0 - cur, pct = Math.max(0, Math.min(1, total > 0 ? lost / total : 0));
+  const e = eta(), ms = milestones(), cal = calibration(), wk = weekStats(), t = dkey();
+  let est = 0, cnt = 0;
+  for (const k in S.days) if (k < t && isLogged(k) && calc(k, 1).eaten >= 800) { est += calc(k, 1).def / 7700; cnt++; }
+  const rows = []; let k = t;
+  for (let i = 0; i < 14 && k >= S.start; i++, k = addDays(k, -1)) rows.push(k);
+  const etaTxt = e === null ? '–' : e.days === 0 ? 'cieľ splnený' : (() => { const d = new Date(); d.setDate(d.getDate() + e.days); return d.toLocaleDateString('sk-SK', { day:'numeric', month:'numeric', year:'numeric' }); })();
+  const nextM = lost >= total ? null : Math.min(total, (Math.floor(lost / 5) + 1) * 5);
+  const wThis = wavg(addDays(t, -6), t), wPrev = wavg(addDays(t, -13), addDays(t, -7));
+  const calHtml = cal.need ? `<p class="mut">${cal.need}</p>`
+    : `<p>Za posledných <b>${cal.span}</b> dní (${cal.L} zapísaných) výpočet odhadol úbytok <b>${fmt(cal.est, 1)} kg</b>, na váhe je <b>${fmt(cal.act, 1)} kg</b>.</p>
+       <p>Tvoj skutočný výdaj je pravdepodobne o <b>${fmt(Math.abs(cal.diff), 0)} kcal/deň ${cal.diff >= 0 ? 'vyšší' : 'nižší'}</b>, než ukazuje vzorec.</p>
+       <div class="row"><button class="btn sec" data-act="calUse" data-val="${Math.round(cal.diff)}">Použiť korekciu</button>${S.set.calib ? '<button class="btn sec" data-act="calClear">Zrušiť</button>' : ''}</div>`;
+  $('#v-stats').innerHTML = `
+  <section class="card"><h2>Cesta k cieľu</h2>
+    <div class="row between"><span><b>${fmt(p.w0, 1)} kg</b> štart</span><span><b>${fmt(p.goal, 1)} kg</b> cieľ</span></div>
+    <div class="bar"><i style="width:${pct * 100}%"></i></div>
+    <p class="mut">Schudnuté <b>${fmt(lost, 1)} kg</b> z ${fmt(total, 1)} kg (${fmt(pct * 100, 0)} %). Zostáva <b>${fmt(Math.max(0, cur - p.goal), 1)} kg</b>.</p>
+    ${nextM ? `<p class="mut">Najbližší míľnik: −${nextM} kg (ešte ${fmt(Math.max(0, nextM - lost), 1)} kg).</p>` : '<p class="mut">Cieľ je splnený.</p>'}
+  </section>
+  ${ms.length ? `<section class="card"><h2>Míľniky</h2><ul class="list" style="margin-top:0">${ms.slice(-5).reverse().map(m => `<li><span>${m.m === 'cieľ' ? 'Cieľová váha' : '−' + m.m + ' kg'}</span><span class="mut">${longDate(m.d)}</span></li>`).join('')}</ul></section>` : ''}
+  <section class="card"><h2>Váha</h2>${chart()}<p class="mut">Plná čiara je 7-dňový priemer, bodky sú jednotlivé váženia.</p></section>
+  <section class="card"><h2>Čísla</h2><div class="stats">
+    <div class="stat"><b>${fmt(cur, 1)} kg</b><span>aktuálna váha</span></div>
+    <div class="stat"><b>${e && e.rate ? fmt(e.rate, 2) + ' kg' : '–'}</b><span>úbytok za týždeň</span></div>
+    <div class="stat"><b>${etaTxt}</b><span>cieľ pri tomto tempe</span></div>
+    <div class="stat"><b>${streak()}</b><span>dní v rade zapísaných</span></div>
+    <div class="stat"><b>${fmt(est, 1)} kg</b><span>odhad z výpočtov (${cnt} dní)</span></div>
+    <div class="stat"><b>${fmt(lost, 1)} kg</b><span>reálne na váhe</span></div>
+  </div></section>
+  <section class="card"><h2>Presnosť a kalibrácia</h2>
+    <p class="mut">Čítač gramov je odhad z kalórií. Váha je pravda. Kalibrácia porovná oboje a navrhne korekciu tvojho výdaja.</p>
+    ${calHtml}
+    ${S.set.calib ? `<p class="mut" style="margin-top:8px">Aktívna korekcia: <b>${S.set.calib > 0 ? '+' : ''}${fmt(S.set.calib, 0)} kcal/deň</b>.</p>` : ''}
+    <p class="mut" style="margin-top:8px">Pozor: ak zapisuješ jedlo nižšie než je skutočné, kalibrácia to skryje ako „vyšší výdaj“. Váha kolíše kvôli vode, preto je korekcia orientačná (chyba rádovo ±100 až 200 kcal/deň). Kalibruj najskôr po 3 až 6 týždňoch pravidelného zapisovania.</p>
+  </section>
+  ${wk ? `<section class="card"><h2>Posledných 7 dní</h2><div class="stats">
+    <div class="stat"><b>${wk.logged} / ${wk.days}</b><span>dní so zapísaným jedlom</span></div>
+    <div class="stat"><b>${wk.logged ? fmt(wk.eat) : '–'}</b><span>priemer kcal za deň</span></div>
+    <div class="stat"><b>${wk.logged ? fmt(wk.steps) : '–'}</b><span>priemer krokov</span></div>
+    <div class="stat"><b>${wk.logged ? (wk.g >= 0 ? '−' : '+') + fmt(Math.abs(wk.g) / 1000, 2) + ' kg' : '–'}</b><span>odhad úbytku</span></div>
+  </div>${wThis !== null && wPrev !== null ? `<p class="mut" style="margin-top:10px">Priemerná váha: tento týždeň <b>${fmt(wThis, 1)} kg</b>, minulý <b>${fmt(wPrev, 1)} kg</b> (${wThis - wPrev <= 0 ? '−' : '+'}${fmt(Math.abs(wThis - wPrev), 1)} kg).</p>` : ''}</section>` : ''}
+  <section class="card"><h2>Posledné dni</h2>
+    <table><tr><th>Deň</th><th>Jedlo</th><th>Kroky</th><th>Výsledok</th></tr>
+    ${rows.map(k => { const x = calc(k, k === t ? dayFrac() : 1), has = isLogged(k), d = S.days[k]; return `<tr><td>${nice(k)}</td><td>${has ? fmt(x.eaten) : '–'}</td><td>${d && d.steps ? fmt(d.steps) : '–'}</td><td class="${has ? (x.g >= 0 ? 'pos' : 'neg') : ''}">${has ? (x.g >= 0 ? '−' : '+') + fmt(Math.abs(x.g), 0) + ' g' : '–'}</td></tr>`; }).join('')}</table>
+    <p class="mut" style="margin-top:8px">Dnešný riadok je priebežný odhad.</p>
+  </section>`;
+}
+function profileForm(p) {
+  p = p || { sex:'m', age:'', h:'', w0:'', goal:'' };
+  return `<label>Pohlavie</label><select id="pSex"><option value="m" ${p.sex === 'm' ? 'selected' : ''}>muž</option><option value="f" ${p.sex === 'f' ? 'selected' : ''}>žena</option></select>
+  <div class="row"><div><label>Vek</label><input id="pAge" type="number" inputmode="numeric" value="${p.age}"></div><div><label>Výška (cm)</label><input id="pH" type="number" inputmode="numeric" value="${p.h}"></div></div>
+  <div class="row"><div><label>Štartovacia váha (kg)</label><input id="pW" type="number" inputmode="decimal" step="0.1" value="${p.w0}"></div><div><label>Cieľová váha (kg)</label><input id="pG" type="number" inputmode="decimal" step="0.1" value="${p.goal}"></div></div>`;
+}
+function readProfile() {
+  const p = { sex:$('#pSex').value, age:+$('#pAge').value, h:+$('#pH').value, w0:+String($('#pW').value).replace(',', '.'), goal:+String($('#pG').value).replace(',', '.') };
+  if (!(p.age >= 14 && p.age <= 100)) return 'Vek musí byť 14 až 100.';
+  if (!(p.h >= 120 && p.h <= 230)) return 'Výška musí byť 120 až 230 cm.';
+  if (!(p.w0 >= 40 && p.w0 <= 400)) return 'Štartovacia váha musí byť 40 až 400 kg.';
+  if (!(p.goal >= 35 && p.goal < p.w0)) return 'Cieľ musí byť nižší ako štartovacia váha.';
+  return p;
+}
+function rSet() {
+  const auto = (0.0005 * curW()).toFixed(3).replace('.', ',');
+  $('#v-set').innerHTML = `
+  <section class="card"><h2>Profil</h2>${profileForm(S.profile)}<button class="btn full" style="margin-top:12px" data-act="profSave">Uložiť profil</button></section>
+  <section class="card"><h2>Cieľ a výpočty</h2>
+    <label>Tempo chudnutia</label>
+    <select id="setPace">${[[0.25, '0,25 kg týždenne (pomalé)'], [0.5, '0,5 kg týždenne'], [0.7, '0,7 kg týždenne'], [1, '1 kg týždenne (max.)']].map(o => `<option value="${o[0]}" ${S.set.pace === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+    <p class="mut" style="margin-top:6px">Z tempa sa počíta denný cieľ kalórií. Nikdy nie pod 1 500 kcal (muži) a 1 200 kcal (ženy).</p>
+    <label>Kcal na krok (prázdne = automaticky, teraz ≈ ${auto})</label>
+    <input id="setStepK" type="text" inputmode="decimal" placeholder="automaticky" value="${S.set.stepK > 0 ? String(S.set.stepK).replace('.', ',') : ''}">
+    <label>Denný cieľ vody (ml)</label><input id="setWater" type="number" inputmode="numeric" value="${S.set.water}">
+    <label>Pripomienka váženia</label>
+    <select id="setWeigh">${[[1, 'každý deň'], [3, 'každé 3 dni'], [7, 'raz týždenne'], [14, 'raz za 2 týždne']].map(o => `<option value="${o[0]}" ${S.set.weigh === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+    <button class="btn sec full" style="margin-top:12px" data-act="setSave">Uložiť</button>
+    ${S.set.calib ? `<p class="mut" style="margin-top:10px">Aktívna korekcia výdaja: <b>${S.set.calib > 0 ? '+' : ''}${fmt(S.set.calib, 0)} kcal/deň</b> <button class="x" data-act="calClear" aria-label="Zrušiť">✕</button></p>` : ''}
+  </section>
+  <section class="card"><h2>Záloha a export</h2>
+    <p class="mut">Dáta sú len v tomto zariadení (v prehliadači). Zálohuj ich pravidelne, hlavne pred vymazaním dát prehliadača.</p>
+    <div class="row"><button class="btn sec" data-act="export">Stiahnuť</button><button class="btn sec" data-act="copy">Kopírovať</button></div>
+    <button class="btn sec full" style="margin-top:8px" data-act="csv">Exportovať do CSV (tabuľka)</button>
+    <label>Obnoviť zo zálohy (vlož text alebo vyber súbor)</label>
+    <input id="impFile" type="file" accept="application/json,.json" style="margin-bottom:8px">
+    <input id="impTxt" placeholder="vlož JSON zálohy">
+    <button class="btn sec full" style="margin-top:8px" data-act="import">Obnoviť</button>
+  </section>
+  <section class="card"><h2>Ako to počíta</h2>
+    <p class="mut">Výdaj za deň = bazálny metabolizmus (Mifflin-St Jeor) × 1,2 + aktívne kcal (zadané, inak kroky × kcal na krok, automaticky 0,0005 × tvoja váha) + prípadná korekcia z kalibrácie. Čítač rastie plynule počas dňa. Deficit sa prepočíta na tuk (7,7 kcal na gram).</p>
+    <p class="mut">Je to odhad: vzorec sa môže mýliť o 10 až 15 %, jedlo sa zapisuje ručne a časť úbytku je voda. Rozhoduje trend na váhe.</p>
+    <p class="mut">Nie je to lekárske poradenstvo. Pri väčšom úbytku váhy si tempo a kalórie konzultuj s lekárom alebo výživovým poradcom.</p>
+  </section>
+  <section class="card"><button class="btn warn full" data-act="reset">Vymazať všetko a začať odznova</button></section>`;
+}
+
+/* ---------- záloha / export ---------- */
+const exportJSON = () => JSON.stringify(S);
+function download(name, text, type) {
+  const b = new Blob([text], { type }), a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+function doExport() {
+  try { download('gramy-zaloha-' + dkey() + '.json', exportJSON(), 'application/json'); S.lastBackup = Date.now(); save(); toast('Záloha stiahnutá'); }
+  catch (e) { toast('Sťahovanie nejde, skús „Kopírovať“.'); }
+}
+function doCopy() {
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(exportJSON()).then(() => { S.lastBackup = Date.now(); save(); toast('Záloha skopírovaná'); }, () => toast('Kopírovanie zlyhalo'));
+  else toast('Kopírovanie nie je dostupné');
+}
+function csv() {
+  const rows = ['datum,kcal,kroky,spalene_kcal,voda_ml,vaha_kg'], keys = new Set(Object.keys(S.days));
+  S.weights.forEach(w => keys.add(w.d));
+  [...keys].sort().forEach(k => { const d = S.days[k] || { eat:[], steps:0, burn:0 }, w = S.weights.find(x => x.d === k); rows.push([k, d.eat.reduce((a, e) => a + e.k, 0), d.steps || 0, d.burn || 0, d.water || 0, w ? w.kg : ''].join(',')); });
+  return rows.join('\n');
+}
+function doCsv() { try { download('gramy-' + dkey() + '.csv', csv(), 'text/csv'); toast('CSV stiahnuté'); } catch (e) { toast('Sťahovanie nejde.'); } }
+function importText(t) {
+  try { const o = JSON.parse(t); if (!o || !o.profile || !o.days) throw 0; S = Object.assign(def(), o); S.set = Object.assign(defSet(), S.set); if (!S.start) S.start = dkey(); save(); toast('Záloha obnovená'); init(); }
+  catch (e) { toast('Neplatná záloha'); }
+}
+
+/* ---------- udalosti ---------- */
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('[data-tab],[data-eat],[data-stp],[data-del],[data-delw],[data-qk],[data-water],[data-act]'); if (!t) return;
+  if (t.dataset.tab) { tab = t.dataset.tab; render(); $('#main').scrollTop = 0; return; }
+  if (t.dataset.eat) return addFood(+t.dataset.eat);
+  if (t.dataset.qk) return addFood(+t.dataset.qk, t.dataset.ql);
+  if (t.dataset.water) return addWater(+t.dataset.water);
+  if (t.dataset.stp) return setSteps(getDay(view).steps + +t.dataset.stp);
+  if (t.dataset.del !== undefined) { getDay(view).eat.splice(+t.dataset.del, 1); save(); return render(); }
+  if (t.dataset.delw) { S.weights = S.weights.filter(w => w.d !== t.dataset.delw); save(); return render(); }
+  switch (t.dataset.act) {
+    case 'prev': if (view > S.start) { view = addDays(view, -1); render(); } return;
+    case 'next': if (view < dkey()) { view = addDays(view, 1); render(); } return;
+    case 'eatAdd': { const i = $('#eatIn'), n = $('#eatName'), v = +i.value, l = n ? n.value : ''; if (v > 0) { i.value = ''; if (n) n.value = ''; } return addFood(v, l); }
+    case 'stSave': return setSteps(+$('#stIn').value);
+    case 'bnSave': return setBurn(+$('#bnIn').value || 0);
+    case 'wSave': return addWeight(+String($('#wIn').value).replace(',', '.'));
+    case 'profSave': { const p = readProfile(); if (typeof p === 'string') return toast(p); S.profile = p; save(); toast('Profil uložený'); return render(); }
+    case 'setSave': {
+      const k = parseFloat(String($('#setStepK').value).replace(',', '.')), w = +$('#setWater').value;
+      if ($('#setStepK').value.trim() && !(k > 0 && k <= 0.3)) return toast('Kcal na krok: číslo 0,01 až 0,3 alebo nechaj prázdne.');
+      if (!(w >= 500 && w <= 6000)) return toast('Cieľ vody 500 až 6 000 ml.');
+      S.set.pace = +$('#setPace').value; S.set.stepK = $('#setStepK').value.trim() ? k : 0; S.set.water = Math.round(w); S.set.weigh = +$('#setWeigh').value;
+      save(); toast('Uložené'); return render();
+    }
+    case 'calUse': S.set.calib = +t.dataset.val; save(); toast('Korekcia výdaja je zapnutá'); return render();
+    case 'calClear': S.set.calib = 0; save(); toast('Korekcia zrušená'); return render();
+    case 'export': return doExport();
+    case 'copy': return doCopy();
+    case 'csv': return doCsv();
+    case 'import': { const f = $('#impFile').files[0]; if (f) { const r = new FileReader(); r.onload = () => importText(r.result); r.readAsText(f); return; } const v = $('#impTxt').value.trim(); return v ? importText(v) : toast('Vlož zálohu alebo vyber súbor'); }
+    case 'reset': if (confirm('Naozaj vymazať všetky dáta? Toto sa nedá vrátiť.')) { S = def(); save(); init(); } return;
+  }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Enter') return;
+  const m = { eatIn:'eatAdd', eatName:'eatAdd', stIn:'stSave', bnIn:'bnSave', wIn:'wSave' }[ev.target.id];
+  if (m) { const b = $('[data-act="' + m + '"]'); if (b) b.click(); }
+});
+
+/* ---------- štart ---------- */
+function showSetup() {
+  const el = $('#setup'); el.classList.add('on');
+  el.innerHTML = `<h1>Gramy</h1><p class="mut" style="margin-bottom:14px">Osobný sledovač chudnutia. Zapíš jedlo, kroky a váhu a uvidíš, koľko gramov si schudol už dnes.</p>
+    <div class="card">${profileForm(null)}<button class="btn full" style="margin-top:14px" id="goBtn">Začať</button></div>
+    <p class="mut">Údaje ostávajú len v tvojom zariadení.</p>`;
+  $('#goBtn').onclick = () => { const p = readProfile(); if (typeof p === 'string') return toast(p); S.profile = p; S.start = dkey(); save(); el.classList.remove('on'); el.innerHTML = ''; init(); };
+}
+let lastToday = dkey();
+function init() {
+  if (!S.profile) { showSetup(); return; }
+  $('#setup').classList.remove('on');
+  if (!S.start) S.start = dkey();
+  view = dkey(); lastToday = view; render();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+setInterval(() => {
+  if (!S.profile) return;
+  if (dkey() !== lastToday) { const wasToday = view === lastToday; lastToday = dkey(); if (wasToday) view = lastToday; render(); }
+  else tick();
+}, 1000);
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+init();
+})();
+</script>
+</body>
+</html>
